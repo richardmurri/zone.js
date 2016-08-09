@@ -385,10 +385,7 @@
 	            var counts = this._taskCounts;
 	            var prev = counts[type];
 	            var next = counts[type] = prev + count;
-	            if (next < 0) {
-	                throw new Error('More tasks executed then were scheduled.');
-	            }
-	            if (prev == 0 || next == 0) {
+                if (prev == 0 || next == 0) {
 	                var isEmpty = {
 	                    microTask: counts.microTask > 0,
 	                    macroTask: counts.macroTask > 0,
