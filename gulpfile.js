@@ -97,6 +97,22 @@ gulp.task('build/long-stack-trace-zone.min.js', function(cb) {
   return generateBrowserScript('./lib/zone-spec/long-stack-trace.ts', 'long-stack-trace-zone.min.js', true, cb);
 });
 
+gulp.task('build/proxy-zone.js', function(cb) {
+  return generateBrowserScript('./lib/zone-spec/proxy.ts', 'proxy.js', false, cb);
+});
+
+gulp.task('build/proxy-zone.min.js', function(cb) {
+  return generateBrowserScript('./lib/zone-spec/proxy.ts', 'proxy.min.js', true, cb);
+});
+
+gulp.task('build/task-tracking.js', function(cb) {
+  return generateBrowserScript('./lib/zone-spec/task-tracking.ts', 'task-tracking.js', false, cb);
+});
+
+gulp.task('build/task-tracking.min.js', function(cb) {
+  return generateBrowserScript('./lib/zone-spec/task-tracking.ts', 'task-tracking.min.js', true, cb);
+});
+
 gulp.task('build/wtf.js', function(cb) {
   return generateBrowserScript('./lib/zone-spec/wtf.ts', 'wtf.js', false, cb);
 });
@@ -107,6 +123,10 @@ gulp.task('build/wtf.min.js', function(cb) {
 
 gulp.task('build/async-test.js', function(cb) {
   return generateBrowserScript('./lib/zone-spec/async-test.ts', 'async-test.js', false, cb);
+});
+
+gulp.task('build/fake-async-test.js', function(cb) {
+  return generateBrowserScript('./lib/zone-spec/fake-async-test.ts', 'fake-async-test.js', false, cb);
 });
 
 gulp.task('build/sync-test.js', function(cb) {
@@ -122,9 +142,14 @@ gulp.task('build', [
   'build/jasmine-patch.min.js',
   'build/long-stack-trace-zone.js',
   'build/long-stack-trace-zone.min.js',
+  'build/proxy-zone.js',
+  'build/proxy-zone.min.js',
+  'build/task-tracking.js',
+  'build/task-tracking.min.js',
   'build/wtf.js',
   'build/wtf.min.js',
   'build/async-test.js',
+  'build/fake-async-test.js',
   'build/sync-test.js'
 ]);
 

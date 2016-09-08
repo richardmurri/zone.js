@@ -34,8 +34,9 @@ describe('Zone', function () {
   });
 
   it('should allow zones to be run from within another zone', function () {
-    var zoneA = Zone.current.fork({ name: 'A' });
-    var zoneB = Zone.current.fork({ name: 'B' });
+    var zone = Zone.current;
+    var zoneA = zone.fork({ name: 'A' });
+    var zoneB = zone.fork({ name: 'B' });
 
     zoneA.run(function () {
       zoneB.run(function () {
@@ -43,7 +44,7 @@ describe('Zone', function () {
       });
       expect(Zone.current).toBe(zoneA);
     });
-    expect(Zone.current).toBe(rootZone);
+    expect(Zone.current).toBe(zone);
   });
 
 
@@ -60,9 +61,12 @@ describe('Zone', function () {
     it('should store properties', function () {
       var testZone = Zone.current.fork({name: 'A', properties: { key: 'value' }});
       expect(testZone.get('key')).toEqual('value');
+      expect(testZone.getZoneWith('key')).toEqual(testZone);
       var childZone = testZone.fork({name: 'B', properties: { key: 'override' }});
       expect(testZone.get('key')).toEqual('value');
+      expect(testZone.getZoneWith('key')).toEqual(testZone);
       expect(childZone.get('key')).toEqual('override');
+      expect(childZone.getZoneWith('key')).toEqual(childZone);
     });
   });
 
@@ -144,6 +148,33 @@ describe('Zone', function () {
         { microTask: false, macroTask: false, eventTask: false, change: 'microTask', zone: 'child' },
         { microTask: false, macroTask: false, eventTask: false, change: 'microTask', zone: 'parent' },
       ]);
+    });
+  });
+
+  describe('invoking tasks', () => {
+    var log;
+    function noop() {}
+
+
+    beforeEach(() => {
+      log = [];
+    });
+
+    it('should not drain the microtask queue too early', () => {
+      var z = Zone.current;
+      var event = z.scheduleEventTask('test', () => log.push('eventTask'), null, noop, noop);
+
+      z.scheduleMicroTask('test', () => log.push('microTask'));
+
+      var macro = z.scheduleMacroTask('test', () => {
+        event.invoke();
+        // At this point, we should not have invoked the microtask.
+        expect(log).toEqual([
+          'eventTask'
+        ]);
+      }, null, noop, noop);
+
+      macro.invoke();
     });
   });
 });

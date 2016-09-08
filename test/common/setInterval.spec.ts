@@ -1,5 +1,5 @@
 'use strict';
-import {zoneSymbol} from "../../lib/common/utils";
+import {isNode, zoneSymbol} from "../../lib/common/utils";
 
 describe('setInterval', function () {
 
@@ -12,11 +12,11 @@ describe('setInterval', function () {
         expect(Zone.current.name).toEqual(('TestZone'));
         global[zoneSymbol('setTimeout')](function() {
           expect(wtfMock.log).toEqual([
-            '# Zone:fork("<root>::WTF", "TestZone")',
-            '> Zone:invoke:unit-test("<root>::WTF::TestZone")',
-            '# Zone:schedule:macroTask:setInterval("<root>::WTF::TestZone", ' + id + ')',
+            '# Zone:fork("<root>::ProxyZone::WTF", "TestZone")',
+            '> Zone:invoke:unit-test("<root>::ProxyZone::WTF::TestZone")',
+            '# Zone:schedule:macroTask:setInterval("<root>::ProxyZone::WTF::TestZone", ' + id + ')',
             '< Zone:invoke:unit-test',
-            '> Zone:invokeTask:setInterval("<root>::WTF::TestZone")',
+            '> Zone:invokeTask:setInterval("<root>::ProxyZone::WTF::TestZone")',
             '< Zone:invokeTask:setInterval'
           ]);
           clearInterval(cancelId);
@@ -25,20 +25,21 @@ describe('setInterval', function () {
       };
       expect(Zone.current.name).toEqual(('TestZone'));
       cancelId = setInterval(intervalFn, 10);
+      if (isNode) {
+        expect(typeof cancelId.ref).toEqual(('function'));
+        expect(typeof cancelId.unref).toEqual(('function'));
+      }
 
       // This icky replacer is to deal with Timers in node.js. The data.handleId contains timers in
       // node.js. They do not stringify properly since they contain circular references.
       id = JSON.stringify((<MacroTask>cancelId).data, function replaceTimer(key, value) {
-        if (value._idleNext) {
-          return '';
-        } else {
-          return value;
-        }
+        if (key == 'handleId' && typeof value == 'object') return value.constructor.name;
+        return value;
       });
       expect(wtfMock.log).toEqual([
-        '# Zone:fork("<root>::WTF", "TestZone")',
-        '> Zone:invoke:unit-test("<root>::WTF::TestZone")',
-        '# Zone:schedule:macroTask:setInterval("<root>::WTF::TestZone", ' + id + ')'
+        '# Zone:fork("<root>::ProxyZone::WTF", "TestZone")',
+        '> Zone:invoke:unit-test("<root>::ProxyZone::WTF::TestZone")',
+        '# Zone:schedule:macroTask:setInterval("<root>::ProxyZone::WTF::TestZone", ' + id + ')'
       ]);
     }, null, null, 'unit-test');
   });

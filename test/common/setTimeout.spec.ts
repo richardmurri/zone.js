@@ -1,4 +1,4 @@
-import {zoneSymbol} from '../../lib/common/utils';
+import {isNode, zoneSymbol} from '../../lib/common/utils';
 
 describe('setTimeout', function () {
   it('should intercept setTimeout', function (done) {
@@ -10,11 +10,11 @@ describe('setTimeout', function () {
         expect(Zone.current.name).toEqual(('TestZone'));
         global[zoneSymbol('setTimeout')](function () {
           expect(wtfMock.log).toEqual([
-            '# Zone:fork("<root>::WTF", "TestZone")',
-            '> Zone:invoke:unit-test("<root>::WTF::TestZone")',
-            '# Zone:schedule:macroTask:setTimeout("<root>::WTF::TestZone", ' + id + ')',
+            '# Zone:fork("<root>::ProxyZone::WTF", "TestZone")',
+            '> Zone:invoke:unit-test("<root>::ProxyZone::WTF::TestZone")',
+            '# Zone:schedule:macroTask:setTimeout("<root>::ProxyZone::WTF::TestZone", ' + id + ')',
             '< Zone:invoke:unit-test',
-            '> Zone:invokeTask:setTimeout("<root>::WTF::TestZone")',
+            '> Zone:invokeTask:setTimeout("<root>::ProxyZone::WTF::TestZone")',
             '< Zone:invokeTask:setTimeout'
           ]);
           done();
@@ -22,19 +22,20 @@ describe('setTimeout', function () {
       };
       expect(Zone.current.name).toEqual(('TestZone'));
       cancelId = setTimeout(timeoutFn, 3);
+      if (isNode) {
+        expect(typeof cancelId.ref).toEqual(('function'));
+        expect(typeof cancelId.unref).toEqual(('function'));
+      }
       // This icky replacer is to deal with Timers in node.js. The data.handleId contains timers in
       // node.js. They do not stringify properly since they contain circular references.
       id = JSON.stringify((<MacroTask>cancelId).data, function replaceTimer(key, value) {
-        if (value._idleNext) {
-          return '';
-        } else {
-          return value;
-        }
+        if (key == 'handleId' && typeof value == 'object') return value.constructor.name;
+        return value;
       });
       expect(wtfMock.log).toEqual([
-        '# Zone:fork("<root>::WTF", "TestZone")',
-        '> Zone:invoke:unit-test("<root>::WTF::TestZone")',
-        '# Zone:schedule:macroTask:setTimeout("<root>::WTF::TestZone", ' + id + ')'
+        '# Zone:fork("<root>::ProxyZone::WTF", "TestZone")',
+        '> Zone:invoke:unit-test("<root>::ProxyZone::WTF::TestZone")',
+        '# Zone:schedule:macroTask:setTimeout("<root>::ProxyZone::WTF::TestZone", ' + id + ')'
       ]);
     }, null, null, 'unit-test');
   });
@@ -83,6 +84,14 @@ describe('setTimeout', function () {
       }, 0);
     });
   });
+
+  it('should return the timeout Id through toString', function () {
+    // Node returns complex object from setTimeout, ignore this test.
+    if (isNode) return;
+    var cancelId = setTimeout(() => {
+    }, 0);
+    expect(typeof (cancelId.toString())).toBe('number');
+  })
 
   it('should pass invalid values through', function () {
     clearTimeout(null);
