@@ -1,4 +1,10 @@
-// Karma configuration
+/**
+ * @license
+ * Copyright Google Inc. All Rights Reserved.
+ *
+ * Use of this source code is governed by an MIT-style license that can be
+ * found in the LICENSE file at https://angular.io/license
+ */
 
 module.exports = function (config) {
   config.set({
@@ -6,17 +12,19 @@ module.exports = function (config) {
     files: [
       'node_modules/systemjs/dist/system-polyfills.js',
       'node_modules/systemjs/dist/system.src.js',
+      'node_modules/whatwg-fetch/fetch.js',
       {pattern: 'test/assets/**/*.*', watched: true, served: true, included: false},
       {pattern: 'build/**/*.js.map', watched: true, served: true, included: false},
       {pattern: 'build/**/*.js', watched: true, served: true, included: false},
+      'build/test/wtf_mock.js',
+      'build/lib/zone.js',
       'build/test/main.js'
     ],
 
     plugins: [
       require('karma-chrome-launcher'),
       require('karma-firefox-launcher'),
-      require('karma-jasmine'),
-      require('karma-sourcemap-loader'),
+      require('karma-sourcemap-loader')
     ],
 
     preprocessors: {
@@ -35,7 +43,6 @@ module.exports = function (config) {
     logLevel: config.LOG_INFO,
 
     browsers: ['Firefox'],
-    frameworks: ['jasmine'],
 
     captureTimeout: 60000,
 
