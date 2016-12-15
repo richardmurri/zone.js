@@ -1,3 +1,11 @@
+/**
+ * @license
+ * Copyright Google Inc. All Rights Reserved.
+ *
+ * Use of this source code is governed by an MIT-style license that can be
+ * found in the LICENSE file at https://angular.io/license
+ */
+
 import '../../lib/zone-spec/task-tracking';
 
 describe('TaskTrackingZone', function() {
@@ -47,10 +55,11 @@ describe('TaskTrackingZone', function() {
         xhr.send();
         expect(taskTrackingZoneSpec.macroTasks.length).toBe(1);
         expect(taskTrackingZoneSpec.macroTasks[0].source).toBe('XMLHttpRequest.send');
-        expect(taskTrackingZoneSpec.eventTasks[0].source).toMatch(/\.addEventListener:readystatechange/);
+        expect(taskTrackingZoneSpec.eventTasks[0].source)
+            .toMatch(/\.addEventListener:readystatechange/);
       });
-      
-    });    
+
+    });
   });
 
   it('should capture task creation stacktrace', (done) => {
